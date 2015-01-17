@@ -12,7 +12,7 @@
 ## Installation
 
 ```bash
-composer require league\flysystem-ziparchive
+composer require league/flysystem-ziparchive
 ```
 
 ## Usage
