@@ -1,7 +1,7 @@
 <?php
 
-use League\Flysystem\ZipArchive\ZipArchiveAdapter as Zip;
 use League\Flysystem\Config;
+use League\Flysystem\ZipArchive\ZipArchiveAdapter as Zip;
 
 class ZipArchiveTests extends PHPUnit_Framework_TestCase
 {
