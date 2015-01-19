@@ -32,9 +32,9 @@ class ZipArchiveAdapter extends AbstractAdapter
     protected $archive;
 
     /**
-     * @param            $location
-     * @param ZipArchive $archive
-     * @param null       $prefix
+     * @param             $location
+     * @param ZipArchive  $archive
+     * @param string|null $prefix
      */
     public function __construct($location, ZipArchive $archive = null, $prefix = null)
     {
