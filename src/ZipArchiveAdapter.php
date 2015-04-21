@@ -235,7 +235,9 @@ class ZipArchiveAdapter extends AbstractAdapter
             }
         }
 
-        return $result;
+        return array_filter($result, function ($item) {
+            return $item['path'] !== false;
+        });
     }
 
     /**
