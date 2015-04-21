@@ -231,13 +231,20 @@ class ZipArchiveAdapter extends AbstractAdapter
 
         for ($i = 0; $i < $this->archive->numFiles; $i++) {
             if ($info = $this->archive->statIndex($i)) {
-                $result[] = $this->normalizeObject($info);
+                $result[] = $info;
             }
         }
 
-        return array_filter($result, function ($item) {
-            return $item['path'] !== false;
-        });
+        $pathPrefix = $this->getPathPrefix();
+        $prefixLength = strlen($pathPrefix);
+
+        return array_filter(array_map(function ($item) use ($pathPrefix, $prefixLength) {
+            if ($pathPrefix && (substr($item['name'], 0, $prefixLength) !== $pathPrefix || $item['name'] === $pathPrefix)) {
+                return false;
+            }
+
+            return $this->normalizeObject($item);
+        }, $result));
     }
 
     /**

@@ -47,6 +47,9 @@ class ZipArchiveTests extends PHPUnit_Framework_TestCase
         $this->assertCount(1, $zip->listContents());
         $this->assertInternalType('array', $zip->write('nested/file.txt', 'contents', new Config()));
         $this->assertCount(3, $zip->listContents());
+        $zip->setPathPrefix('nested/');
+        $this->assertCount(1, $zip->listContents());
+        $zip->setPathPrefix('');
         $result = $zip->read('nested/file.txt');
         $this->assertEquals('contents', $result['contents']);
         $zip->update('nested/file.txt', 'new contents', new Config());
