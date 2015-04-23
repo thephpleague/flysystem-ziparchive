@@ -183,21 +183,30 @@ class ZipArchiveAdapter extends AbstractAdapter
     /**
      * {@inheritdoc}
      */
-    public function has($path)
+    public function has($path, $relaxed = false)
     {
-        return $this->getMetadata($path);
+        return $this->getMetadata($path, $relaxed);
     }
 
     /**
      * {@inheritdoc}
      */
-    public function read($path)
+    public function read($path, $relaxed = false)
     {
         $this->reopenArchive();
         $location = $this->applyPathPrefix($path);
 
         if (! $contents = $this->archive->getFromName($location)) {
-            return false;
+            if (!$relaxed) return false;
+
+            // try to locate in any subfolder, case insensitive
+            $index = $this->archive->locateName($location, ZipArchive::FL_NOCASE|ZipArchive::FL_NODIR);
+            if ($index === FALSE) {
+                return false;
+            }
+            if (! $contents = $this->archive->getFromIndex($index)) {
+                return false;
+            }
         }
 
         return compact('contents');
@@ -250,12 +259,20 @@ class ZipArchiveAdapter extends AbstractAdapter
     /**
      * {@inheritdoc}
      */
-    public function getMetadata($path)
+    public function getMetadata($path, $relaxed = false)
     {
         $location = $this->applyPathPrefix($path);
 
         if (! $info = $this->archive->statName($location)) {
-            return false;
+            if (!$relaxed) return false;
+            // Try to locate in any subfolder, case insensitive
+            $index = $this->archive->locateName($location, ZipArchive::FL_NOCASE|ZipArchive::FL_NODIR);
+            if ($index === FALSE) {
+                return false;
+            }
+            if (! $info = $this->archive->statIndex($index)) {
+                return false;
+            }
         }
 
         return $this->normalizeObject($info);
