@@ -256,8 +256,8 @@ class ZipArchiveAdapter extends AbstractAdapter
 
         if (! $info = $this->archive->statName($location)) {
 
-            // Check if $path is a directory.
-            if (!$info = $this->archive->statName($location . '/')) {
+            // Check if $location is a directory.
+            if (! $info = $this->archive->statName($location . '/')) {
                 return false;
             }
         }
