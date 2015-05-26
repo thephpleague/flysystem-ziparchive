@@ -67,6 +67,10 @@ class ZipArchiveTests extends PHPUnit_Framework_TestCase
         $this->assertCount(1, $zip->listContents());
         $zip->rename('file.txt', 'renamed.txt');
         $this->assertFalse($zip->has('file.txt'));
+
+        $zip->createDir('empty_dir', new Config());
+        $this->assertInternalType('array', $zip->getMetadata('empty_dir'));
+
         $stream = tmpfile();
         fwrite($stream, 'something');
         rewind($stream);
