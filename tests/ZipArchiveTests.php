@@ -204,13 +204,15 @@ class ZipArchiveTests extends PHPUnit_Framework_TestCase
         rmdir($folder);
     }
 
+    /**
+     * @expectedException League\Flysystem\Exception
+     */
     public function testCreateFolderFailsWithException()
     {
         if (is_dir($folder = '/path/does/not/exist')) {
             $this->markTestIncomplete('Path unexpectedly exists');
         }
 
-        $this->expectException(League\Flysystem\Exception::class);
         $zip = new Zip('/path/does/not/exist/tester.zip', new ZipArchive());
     }
 }
