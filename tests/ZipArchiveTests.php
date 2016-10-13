@@ -132,6 +132,7 @@ class ZipArchiveTests extends PHPUnit_Framework_TestCase
         }
 
         $mock = Mockery::mock('ZipArchive');
+        $mock->shouldReceive('ensureDirectory')->andReturn('.');
         $mock->shouldReceive('open')->andReturn(false);
         $zip = new Zip('location', $mock);
     }
@@ -143,6 +144,7 @@ class ZipArchiveTests extends PHPUnit_Framework_TestCase
         }
 
         $mock = Mockery::mock('ZipArchive');
+        $mock->shouldReceive('ensureDirectory')->andReturn('.');
         $mock->shouldReceive('open')->andReturn(true);
         $mock->shouldReceive('close')->andReturn(true);
         $mock->shouldReceive('addFromString')->andReturn(false);
@@ -164,6 +166,7 @@ class ZipArchiveTests extends PHPUnit_Framework_TestCase
 
         $resource = fopen(__DIR__.'/../readme.md', 'r+');
         $mock = Mockery::mock('ZipArchive');
+        $mock->shouldReceive('ensureDirectory')->andReturn('.');
         $mock->shouldReceive('open')->andReturn(true);
         $mock->shouldReceive('close')->andReturn(true);
         $mock->shouldReceive('addFromString')->andReturn(true);
@@ -182,10 +185,32 @@ class ZipArchiveTests extends PHPUnit_Framework_TestCase
         }
 
         $mock = Mockery::mock('ZipArchive');
+        $mock->shouldReceive('ensureDirectory')->andReturn('.');
         $mock->shouldReceive('open')->andReturn(true);
         $mock->shouldReceive('close')->andReturn(true);
         $mock->shouldReceive('getStream')->andReturn(false);
         $zip = new Zip('location', $mock);
         $this->assertFalse($zip->copy('old', 'new'));
+    }
+
+    public function testCreateFolderSilentlySucceeds()
+    {
+        $folder = __DIR__ . '/newfolder/';
+        $location = $folder . 'tester.zip';
+
+        $zip = new Zip($location, new ZipArchive());
+        $this->assertTrue(is_dir($folder));
+
+        rmdir($folder);
+    }
+
+    public function testCreateFolderFailsWithException()
+    {
+        if (is_dir($folder = '/path/does/not/exist')) {
+            $this->markTestIncomplete('Path unexpectedly exists');
+        }
+
+        $this->expectException(League\Flysystem\Exception::class);
+        $zip = new Zip('/path/does/not/exist/tester.zip', new ZipArchive());
     }
 }

@@ -7,6 +7,7 @@ use League\Flysystem\Adapter\Polyfill\NotSupportingVisibilityTrait;
 use League\Flysystem\Adapter\Polyfill\StreamedCopyTrait;
 use League\Flysystem\Adapter\Polyfill\StreamedWritingTrait;
 use League\Flysystem\Config;
+use League\Flysystem\Exception;
 use League\Flysystem\Util;
 use LogicException;
 use ZipArchive;
@@ -32,15 +33,64 @@ class ZipArchiveAdapter extends AbstractAdapter
     protected $archive;
 
     /**
+     * @var array
+     */
+    protected static $permissions = [
+        'file' => [
+            'public' => 0644,
+            'private' => 0600,
+        ],
+        'dir' => [
+            'public' => 0755,
+            'private' => 0700,
+        ]
+    ];
+
+    /**
+     * @var array
+     */
+    protected $permissionMap;
+
+    /**
      * @param             $location
      * @param ZipArchive  $archive
      * @param string|null $prefix
      */
     public function __construct($location, ZipArchive $archive = null, $prefix = null)
     {
+        $this->permissionMap = static::$permissions;
+
+        $this->ensureDirectory(dirname($location));
+
         $this->setArchive($archive ?: new ZipArchive());
         $this->openArchive($location);
         $this->setPathPrefix($prefix);
+    }
+
+    /**
+     * Ensure the directory exists.
+     *
+     * @param string $dirname directory path where zip file is created
+     *
+     * @return string real path to directory
+     *
+     * @throws Exception in case the directory can not be created
+     */
+    protected function ensureDirectory($dirname)
+    {
+        if ( ! is_dir($dirname)) {
+            $umask = umask(0);
+            @mkdir($dirname, $this->permissionMap['dir']['public'], true);
+            umask($umask);
+
+            if ( ! is_dir($dirname)) {
+                throw new Exception(sprintf('Impossible to create the directory "%s".', $dirname));
+            }
+        } elseif ( ! is_writeable($dirname)) {
+            throw new LogicException('The directory ' . $dirname . ' is not writable.');
+        }
+
+        return realpath($dirname);
     }
 
     /**
