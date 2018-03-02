@@ -181,19 +181,16 @@ class ZipArchiveAdapter extends AbstractAdapter
         $location = $this->applyPathPrefix($dirname);
         $path = Util::normalizePrefix($location, '/');
         $length = strlen($path);
-        $result = true;
 
         for ($i = 0; $i < $this->archive->numFiles; $i++) {
             $info = $this->archive->statIndex($i);
 
-            if (substr($info['name'], 0, $length) === $path) {
-                if (! $result = $this->archive->deleteIndex($i)) {
-                    break;
-                }
+            if (substr($info['name'], 0, $length) === $path && $info['name'] !== $path) {
+                $this->archive->deleteIndex($i);
             }
         }
 
-        return $result;
+        return $this->archive->deleteName($path);
     }
 
     /**
