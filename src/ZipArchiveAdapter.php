@@ -129,8 +129,34 @@ class ZipArchiveAdapter extends AbstractAdapter
     {
         $source = $this->applyPathPrefix($path);
         $destination = $this->applyPathPrefix($newpath);
+        $info = $this->archive->statName($source);
 
-        return $this->archive->renameName($source, $destination);
+        if ($info && substr($info['name'], -1) !== '/') {
+
+            return $this->archive->renameName($source, $destination);
+
+        } 
+
+        $source = Util::normalizePrefix($source, '/');
+        $destination = Util::normalizePrefix($destination, '/');
+        $length = strlen($source);
+        $result = true;
+
+        // This is needed to ensure the right number of
+        // files are set to the $numFiles property.
+        $this->reopenArchive();
+
+        for ($i = 0; $i < $this->archive->numFiles; $i++) {
+            $info = $this->archive->statIndex($i);
+
+            if (substr($info['name'], 0, $length) === $source) {
+                if (! $result = $this->archive->renameIndex($i, $destination . substr($info['name'], $length))) {
+                    break;
+                }
+            }
+        }
+
+        return $result;
     }
 
     /**
@@ -159,12 +185,12 @@ class ZipArchiveAdapter extends AbstractAdapter
         for ($i = 0; $i < $this->archive->numFiles; $i++) {
             $info = $this->archive->statIndex($i);
 
-            if (substr($info['name'], 0, $length) === $path) {
+            if (substr($info['name'], 0, $length) === $path && $info['name'] !== $path) {
                 $this->archive->deleteIndex($i);
             }
         }
 
-        return $this->archive->deleteName($dirname);
+        return $this->archive->deleteName($path);
     }
 
     /**
