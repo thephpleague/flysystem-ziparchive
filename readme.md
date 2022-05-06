@@ -19,7 +19,13 @@ composer require league/flysystem-ziparchive
 
 ```php
 use League\Flysystem\Filesystem;
-use League\Flysystem\ZipArchive\ZipArchiveAdapter as Adapter;
+use League\Flysystem\ZipArchive\ZipArchiveAdapter;
+use League\Flysystem\ZipArchive\FilesystemZipArchiveProvider;
 
-$filesystem = new Filesystem(new Adapter(__DIR__.'/path/to/archive.zip'));
+$zipFile = __DIR__.'/path/to/archive.zip';
+$filesystem = new Filesystem(
+    new ZipArchiveAdapter(
+        new FilesystemZipArchiveProvider($zipFile)
+    )
+);
 ```
