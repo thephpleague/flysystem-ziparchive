@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace League\Flysystem\ZipArchive;
 
 use Generator;
+use League\Flysystem\ChecksumProvider;
 use League\Flysystem\Config;
 use League\Flysystem\DirectoryAttributes;
 use League\Flysystem\FileAttributes;
@@ -15,6 +16,7 @@ use League\Flysystem\UnableToCreateDirectory;
 use League\Flysystem\UnableToDeleteDirectory;
 use League\Flysystem\UnableToDeleteFile;
 use League\Flysystem\UnableToMoveFile;
+use League\Flysystem\UnableToProvideChecksum;
 use League\Flysystem\UnableToReadFile;
 use League\Flysystem\UnableToRetrieveMetadata;
 use League\Flysystem\UnableToSetVisibility;
@@ -31,7 +33,7 @@ use function fopen;
 use function rewind;
 use function stream_copy_to_stream;
 
-final class ZipArchiveAdapter implements FilesystemAdapter
+final class ZipArchiveAdapter implements FilesystemAdapter, ChecksumProvider
 {
     private PathPrefixer $pathPrefixer;
     private MimeTypeDetector$mimeTypeDetector;
@@ -211,7 +213,9 @@ final class ZipArchiveAdapter implements FilesystemAdapter
 
     public function visibility(string $path): FileAttributes
     {
+        /** @var int|null $opsys */
         $opsys = null;
+        /** @var int|null $attr */
         $attr = null;
         $archive = $this->zipArchiveProvider->createZipArchive();
         $archive->getExternalAttributesName(
@@ -368,6 +372,20 @@ final class ZipArchiveAdapter implements FilesystemAdapter
 
             throw UnableToCopyFile::fromLocationTo($source, $destination, $exception);
         }
+    }
+
+    public function checksum(string $path, Config $config): string
+    {
+        $algo = $config->get('checksum_algo', 'md5');
+        $contents = $this->read($path);
+        error_clear_last();
+        $checksum = @hash($algo, $contents);
+
+        if ($checksum === false) {
+            throw new UnableToProvideChecksum(error_get_last()['message'] ?? '', $path);
+        }
+
+        return $checksum;
     }
 
     private function ensureParentDirectoryExists(string $path, Config $config): void
