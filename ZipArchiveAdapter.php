@@ -155,7 +155,7 @@ final class ZipArchiveAdapter implements FilesystemAdapter
 
             $itemPath = $stats['name'];
 
-            if (!str_starts_with($itemPath, $prefixedPath)) {
+            if ( ! str_starts_with($itemPath, $prefixedPath)) {
                 continue;
             }
 
@@ -299,7 +299,7 @@ final class ZipArchiveAdapter implements FilesystemAdapter
 
             if (
                 $location === $itemPath
-                || ($deep && $location !== '' && !str_starts_with($itemPath, $location))
+                || ($deep && $location !== '' && ! str_starts_with($itemPath, $location))
                 || ($deep === false && ! $this->isAtRootDirectory($location, $itemPath))
             ) {
                 continue;
