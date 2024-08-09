@@ -340,6 +340,13 @@ final class ZipArchiveAdapter implements FilesystemAdapter
         $archive = $this->zipArchiveProvider->createZipArchive();
 
         if ($archive->locateName($this->pathPrefixer->prefixPath($destination)) !== false) {
+            if ($source === $destination) {
+                //update the config of the file
+                $this->copy($source, $destination, $config);
+
+                return;
+            }
+
             $this->delete($destination);
             $this->copy($source, $destination, $config);
             $this->delete($source);
